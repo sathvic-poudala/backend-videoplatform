@@ -1,0 +1,16 @@
+{
+  "name": "project_youtube",
+  "version": "1.0.0",
+  "description": "my project withh baceknd of youtube and some other extra funtionalities",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "javascript",
+    "backend",
+    "chai"
+  ],
+  "author": "Poudala Sathvic",
+  "license": "ISC"
+}
