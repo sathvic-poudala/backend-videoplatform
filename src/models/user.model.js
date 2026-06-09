@@ -1,6 +1,7 @@
-import moongoose, {schema} from 'mongoose';
+import moongoose, {Schema} from 'mongoose';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
 
 const userSchema = new Schema({
     userName: {
@@ -50,13 +51,12 @@ const userSchema = new Schema({
 });
 
 userSchema.pre("save", async function(next) {
-    if(!this.isModified("password")) return next();
+    if(!this.isModified("password")) return ;
     this.password = await bcrypt.hashSync(this.password, 10);
-    next();
     
 });
 
-userSchema.methods.ispasswordMatch = async function(password)
+userSchema.methods.isPasswordMatch = async function(password)
 { 
     return await bcrypt.compare(password, this.password);
 }
