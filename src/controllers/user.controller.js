@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js"
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import jws  from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async(userId) => {
     const user = await User.findById(userId)
@@ -178,9 +180,55 @@ const logoutUser = asyncHandler( async(req,res) => {
 
 })
 
+const refreshAccessToken = asyncHandler( async(req,res) => {
+    //get user refersh token 
+    //validate it
+    //generate new access and refresh tokens
+    //store refresh token in db and send new tokens to user
+    const token = req.cookie?.refershToken || req.body.refershToken
+
+    if(!token) {
+        throw new ApiError(401,"user not authorized")
+    }
+
+    const decodedRefreshToken = jwt.verify(token,process.env.REFRESH_TOKEN_SECRET)
+
+    const user = await User.findById(decodedRefreshToken._id)
+
+    if(!user) {
+        throw new ApiError(401,"invalid refreshToken")
+    }
+
+    if(token !== user.refershToken) {
+        throw new ApiError(401,"refershToken expired")
+    }
+
+    const {refershToken,accessToken} =  await generateAccessAndRefreshToken(user)
+
+    options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production"
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken",accessToken,options)  
+    .cookie("refershToken",refreshToken,options)
+    .json(
+        new ApiError(201,
+            "tokens generated successfully",
+            {
+                accessToken,
+                refershToken
+            }
+        )
+    )
+
+})
 
 export { 
     registerUser,
     loginUser,
-    logoutUser
- }
+    logoutUser,
+    refreshAccessToken
+}
