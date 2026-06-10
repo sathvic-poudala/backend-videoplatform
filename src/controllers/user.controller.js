@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 
 const generateAccessAndRefreshToken = async(userId) => {
     const user = await User.findById(userId)
-    const acessToken = await user.generateAccessToken()
+    const accessToken = await user.generateAccessToken()
     const refreshToken = await user.generateRefreshToken()
 
     user.refreshToken = refreshToken
@@ -14,7 +14,7 @@ const generateAccessAndRefreshToken = async(userId) => {
     await user.save({validationBeforeSave: false})
 
     return {
-        acessToken,
+        accessToken,
         refreshToken
     }
 }
@@ -117,7 +117,7 @@ const loginUser = asyncHandler( async(req,res) => {
         throw new ApiError(400,"wrong password")
     }
 
-    const {refreshToken,acessToken} = await generateAccessAndRefreshToken(user._id)
+    const {refreshToken,accessToken} = await generateAccessAndRefreshToken(user._id)
 
     user.refershToken = refreshToken;
 
@@ -128,20 +128,20 @@ const loginUser = asyncHandler( async(req,res) => {
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production"
     }
 
     return res
     .status(201)
-    .cookie("acessToken",acessToken,options)
-    .cookie("refreshToken",acessToken,options)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
     .json(
         new ApiResponse(
             201,
             "user logged in sucessfully",
             {
                 refreshToken,
-                acessToken,
+                accessToken,
                 user: loggedInUser
             }
         )
@@ -167,16 +167,17 @@ const logoutUser = asyncHandler( async(req,res) => {
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production"
     }
 
     return res
     .status(200)
-    .clearCookie("acessToken",options)
+    .clearCookie("accessToken",options)
     .clearCookie("refreshToken",options)
     .json( new ApiResponse(200,"user logged out"))
 
 })
+
 
 export { 
     registerUser,
