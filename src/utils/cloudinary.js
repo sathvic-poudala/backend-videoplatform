@@ -1,13 +1,18 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { log } from 'console';
 import fs from 'fs';
-import "../config/cloudinary.js"
 
 
 
 const uploadOnCloudinary = async (localFilePath) => {
     try {
         if(!localFilePath) return null;
+        
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
 
         const response = await cloudinary.uploader.upload(
             localFilePath, {
@@ -29,8 +34,10 @@ const uploadOnCloudinary = async (localFilePath) => {
 const deleteFromCloudinary = async (publicURL) => {
     try {
         if(!publicURL) return null;
+
+
     
-        const urlParts = cloudinaryUrl.split("/");
+        const urlParts = publicURL.split("/");
         const fileName = urlParts[urlParts.length - 1]; 
         const publicId = fileName.split(".")[0];
     

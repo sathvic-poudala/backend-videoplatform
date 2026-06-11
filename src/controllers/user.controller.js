@@ -207,7 +207,7 @@ const refreshAccessToken = asyncHandler(async(req,res) => {
 
     const {refreshToken,accessToken} =  await generateAccessAndRefreshToken(user._id)
 
-    options = {
+    const options = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production"
     }
@@ -231,6 +231,14 @@ const refreshAccessToken = asyncHandler(async(req,res) => {
 const changeCurrentPassword = asyncHandler(async(req,res) => {
 
     const {oldPassword,newPassword} = req.body
+
+    if(!oldPassword || !newPassword) {
+        throw new ApiError(400,"all feilds are required")
+    }
+
+    if(oldPassword === newPassword) {
+        throw new ApiError(400,"new password must be different from old password")
+    }
 
     const user = await User.findById(req.user?._id)
 
@@ -276,7 +284,7 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
             fullName,
             email
         }
-    }).select(
+    },{ returnDocument: 'after' }).select(
         "-password"
     )
 
@@ -300,10 +308,11 @@ const updateAvatar = asyncHandler(async(req,res) => {
         throw ApiError(400, "new avatar is required")
     }
 
-    const newAvatarUrl = await uploadOnCloudinary(newAvatar).url
+    const newAvatar1 = await uploadOnCloudinary(newAvatar)
+    const newAvatarUrl = newAvatar1.url
 
     if(!newAvatarUrl) {
-        throw ApiError(500, "some problem while uploading in cloudinary")
+        throw new ApiError(500, "some problem while uploading in cloudinary")
     }
 
     const oldAvatarUrl = req.user.avatar;
@@ -315,7 +324,7 @@ const updateAvatar = asyncHandler(async(req,res) => {
                 avatar: newAvatarUrl
             }
         },
-        {new: true}
+        { returnDocument: 'after' }
     ).select(
         "-password -refreshToken"
     )
@@ -338,13 +347,14 @@ const updateCoverImage = asyncHandler(async(req,res) => {
     const newCoverImage = req.file?.path
 
     if(!newCoverImage) {
-        throw ApiError(400, "new cover image is required")
+        throw new ApiError(400, "new cover image is required")
     }
 
-    const newCoverImageUrl = await uploadOnCloudinary(newCoverImage).url
+    const newCoverImage1 = await uploadOnCloudinary(newCoverImage)
+    const newCoverImageUrl = newCoverImage1.url
 
     if(!newCoverImageUrl) {
-        throw ApiError(500, "some problem while uploading in cloudinary")
+        throw new ApiError(500, "some problem while uploading in cloudinary")
     }
 
     const oldCoverImageUrl = req.user.coverImage;
@@ -356,9 +366,9 @@ const updateCoverImage = asyncHandler(async(req,res) => {
                 coverImage: newCoverImageUrl
             }
         },
-        {new: true}
+        { returnDocument: 'after' }
     ).select(
-        "-password"
+        "-password -refreshToken"
     )
 
     if (oldCoverImageUrl) {
