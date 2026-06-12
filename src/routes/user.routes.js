@@ -23,19 +23,20 @@ router.route("/login").post(loginUser)//tested
 //secure routes
 router.route("/logout").post(verifyJWT,logoutUser)//tested
 router.route("/refresh-token").post(refreshAccessToken)//tested
-router.route("/changeCurrentPassword").post(verifyJWT,changeCurrentPassword)//tested
+router.route("/change-password").post(verifyJWT,changeCurrentPassword)//tested
 router.route("/getCurrentUser").post(verifyJWT,getCurrentUser)//tested
-router.route("/updateAccountDetails").post(verifyJWT,updateAccountDetails)//tested
-router.route("/updateAvatar").post(
-    upload.single("avatar"),
+router.route("/update-account").patch(verifyJWT,updateAccountDetails)//tested
+router.route("/avatar").patch(
     verifyJWT,
+    upload.single("avatar"),
     updateAvatar
 )//tested
-router.route("/updateCoverImage").post(
-    upload.single("coverImage"),
+router.route("/cover-image").patch(
     verifyJWT,
+    upload.single("coverImage"),
     updateCoverImage
 )//tested
-//need to add getUserChannelProfile
+router.route("/channel/:username").get(verifyJWT, getUserChannelProfile)
+router.route("/watch-history").get(verifyJWT, getWatchHistory)
 
 export default router
