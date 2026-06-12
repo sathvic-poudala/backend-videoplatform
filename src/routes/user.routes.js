@@ -36,5 +36,6 @@ router.route("/updateCoverImage").post(
     verifyJWT,
     updateCoverImage
 )//tested
+//need to add getUserChannelProfile
 
 export default router
