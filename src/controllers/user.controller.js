@@ -306,7 +306,7 @@ const updateAvatar = asyncHandler(async(req,res) => {
     const newAvatar = req.file?.path
 
     if(!newAvatar) {
-        throw ApiError(400, "new avatar is required")
+        throw new ApiError(400, "new avatar is required")
     }
 
     const newAvatar1 = await uploadOnCloudinary(newAvatar)
