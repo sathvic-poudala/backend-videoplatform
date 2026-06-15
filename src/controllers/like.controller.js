@@ -104,9 +104,78 @@ const toggleTweetLike = asyncHandler(async(req,res) => {
 
 })
 
+const getLikedVideos = asyncHandler(async(req,res) => {
+    const like = await Like.aggregate([
+        {
+            $match: {
+                likedBy: new mongoose.Types.ObjectId(req.user._id),
+                video: { $exists: true, $ne: null }
+            }
+        },
+        {
+            $lookup: {
+                from:"videos",
+                localField: "video",
+                foreignField: "_id",
+                as:"likedVideos",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        userName: 1,
+                                        fullName: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                $arrayElemAt: ["$owner",0]
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                likedVideos: 1,
+                likedBy: 1,
+                createdAt: 1,
+                updatedAt: 1
+            }
+        }
+    ])
+
+    if(!like || like.length === 0) {
+        throw new ApiError(404, "videos not found"); 
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "liked videos fetched successfully",
+            like
+        )
+    )
+})
+
 
 export { 
     toggleVideoLike,
     toggleCommentLike,
-    toggleTweetLike
+    toggleTweetLike,
+    getLikedVideos
 }
