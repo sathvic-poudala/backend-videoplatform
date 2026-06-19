@@ -51,9 +51,66 @@ const getUserPlaylists = asyncHandler(async(req, res) => {
     )
 })
 
+const getPlaylistById = asyncHandler(async(req, res) => {
+    const {playlistId} = req.params
+
+    const playlist = await Playlist.findById(playlistId)
+
+    if(!playlist) {
+        throw new ApiError(400, "playlist was not found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "playlist found",
+            playlist
+        )
+    )
+})
+
+const addVideoToPlaylist = asyncHandler(async(req, res) => {
+    const {videoId, playlistId} = req.params
+
+    const videoExists = Video.findById(videoId)
+
+    if(!videoExists) {
+        throw new ApiError(200,"video dosenot exists")
+    }
+
+    const updatedPlaylist = Playlist.findByIdAndUpdate(
+        playlistId,
+        {
+            $addToSet: videoId 
+        },
+        {
+            new: true
+        }
+    )
+
+    if(!updatedPlaylist) {
+        throw new ApiError(200,"playlist dosenot exists")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "playlist updated",
+            updatedPlaylist
+        )
+    )
+})
+
+
+
 
 
 export { 
     createPlaylist, 
-    getUserPlaylists
+    getUserPlaylists,
+    getPlaylistById
  }
