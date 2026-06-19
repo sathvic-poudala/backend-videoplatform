@@ -105,12 +105,9 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
     )
 })
 
-
-
-
-
 export { 
     createPlaylist, 
     getUserPlaylists,
-    getPlaylistById
+    getPlaylistById,
+    addVideoToPlaylist
  }
