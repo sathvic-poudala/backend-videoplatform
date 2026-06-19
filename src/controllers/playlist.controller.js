@@ -54,10 +54,50 @@ const getUserPlaylists = asyncHandler(async(req, res) => {
 const getPlaylistById = asyncHandler(async(req, res) => {
     const {playlistId} = req.params
 
-    const playlist = await Playlist.findById(playlistId)
+    const playlist = await Playlist.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(playlistId)
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "videos",
+                foreignField: "_id",
+                as: "videos",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        userName: 1,
+                                        fullName: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                $arrayElemAt: ["$owner",0]
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
 
-    if(!playlist) {
-        throw new ApiError(400, "playlist was not found");
+    if (!playlist.length) {
+        throw new ApiError(404, "Playlist was not found");
     }
 
     return res
@@ -66,7 +106,7 @@ const getPlaylistById = asyncHandler(async(req, res) => {
         new ApiResponse(
             200,
             "playlist found",
-            playlist
+            playlist[0]
         )
     )
 })
