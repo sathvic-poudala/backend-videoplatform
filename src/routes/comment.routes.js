@@ -10,7 +10,7 @@ import {
 
 const router = Router()
 
-app.use(verifyJWT)
+router.use(verifyJWT)
 
 //routes
 router.route("/:videoId").post(addComment).get(getVideoComments)
