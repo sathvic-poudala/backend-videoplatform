@@ -162,11 +162,44 @@ const deletePlaylist = asyncHandler(async(req, res) => {
         )
     )
 })
+
+const updatePlaylist = asyncHandler(async(req, res) => {
+    const {playlistId} = req.params
+    const {description, name} = req.body
+
+    if(!description || !name) {
+        throw new ApiError(400,"all feilds are required")
+    }
+
+    const updatedPlaylist= await Playlist.findByIdAndUpdate(
+        playlistId,
+        {
+            name: name,
+            description: description
+        }
+    )
+
+    if(!updatePlaylist) {
+        throw new ApiError(404,"playlist dosenot exist")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "playlist details updated successfully",
+            updatePlaylist
+        )
+    )
+})
+
 export { 
     createPlaylist, 
     getUserPlaylists,
     getPlaylistById,
     addVideoToPlaylist,
     removeVideoFromPlaylist,
-    deletePlaylist
+    deletePlaylist,
+    updatePlaylist
  }
