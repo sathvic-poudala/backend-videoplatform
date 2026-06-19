@@ -77,13 +77,15 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
     const videoExists = Video.findById(videoId)
 
     if(!videoExists) {
-        throw new ApiError(200,"video dosenot exists")
+        throw new ApiError(404,"video dosenot exists")
     }
 
-    const updatedPlaylist = Playlist.findByIdAndUpdate(
+    const updatedPlaylist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
-            $addToSet: videoId 
+            $addToSet: {
+                videos:videoId 
+            }
         },
         {
             new: true
@@ -91,7 +93,7 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
     )
 
     if(!updatedPlaylist) {
-        throw new ApiError(200,"playlist dosenot exists")
+        throw new ApiError(404,"playlist dosenot exists")
     }
 
     return res
@@ -105,9 +107,66 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
     )
 })
 
+const removeVideoFromPlaylist = asyncHandler(async(req, res) => {
+    const {videoId, playlistId} = req.params
+
+    const videoExists = Video.findById(videoId)
+
+    if(!videoExists) {
+        throw new ApiError(404,"video dosenot exists")
+    }
+
+    const updatedPlaylist = await Playlist.findByIdAndUpdate(
+        playlistId,
+        {
+            $pull: { 
+                videos: videoId
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    if(!updatedPlaylist) {
+        throw new ApiError(404,"playlist dosenot exists")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "playlist updated",
+            updatedPlaylist
+        )
+    )
+})
+
+const deletePlaylist = asyncHandler(async(req, res) => {
+    const {playlistId} = req.params
+
+    const deletedPlaylist = await Playlist.findByIdAndDelete(playlistId)
+
+    if(!deletedPlaylist) {
+        throw new ApiError(404,"playlist dosenot exist")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "playlist deleted successfully",
+            deletePlaylist
+        )
+    )
+})
 export { 
     createPlaylist, 
     getUserPlaylists,
     getPlaylistById,
-    addVideoToPlaylist
+    addVideoToPlaylist,
+    removeVideoFromPlaylist,
+    deletePlaylist
  }
