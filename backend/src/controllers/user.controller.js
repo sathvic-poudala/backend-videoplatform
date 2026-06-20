@@ -96,10 +96,10 @@ const loginUser = asyncHandler(async(req,res) => {
     //generate acces and refresh token
     //send using secoure cookies
 
-    const {userName,email,password} = req.body;
+    const {email,password} = req.body;
 
-    if(!userName && !email) {
-        throw new ApiErrorError(400,"all feilds are required");
+    if(!email) {
+        throw new ApiError(400,"all feilds are required");
     }
 
     if(email && !email.includes("@")) {
@@ -107,7 +107,7 @@ const loginUser = asyncHandler(async(req,res) => {
     }
 
     const user = await User.findOne({
-        $or: [{userName},{email}]
+       email
     })
 
     if(!user) {
