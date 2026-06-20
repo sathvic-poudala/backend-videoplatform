@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import { asyncHandler } from "../utils/asyncHandler";
-import { User } from "../models/user.model";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/user.model.js";
 import { subscribe } from "diagnostics_channel";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
-import { Video } from "../models/video.model";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { Video } from "../models/video.model.js";
 
 const getChannelStats = asyncHandler(async(req,res) => {
     //get total video views, total subscribers, total videos, total likes etc.
@@ -73,7 +73,7 @@ const getChannelStats = asyncHandler(async(req,res) => {
     )
 })
 
-const getChannelVideos  = asyncHandler(async(req,req) => {
+const getChannelVideos  = asyncHandler(async(req,res) => {
     //Get all the videos uploaded by the channel
     const videos = await Video.aggregate([
         {
