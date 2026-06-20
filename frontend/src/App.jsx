@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { HomePage, LoginPage } from "./pages";
+import { HomePage, LoginPage, NotFoundPage } from "./pages";
 
 function App() {
 
@@ -7,6 +7,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<HomePage />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }
