@@ -7,3 +7,4 @@ export function loginUser(credentials) {
 export function logoutUser() {
   return api.post("/users/logout");
 }
+

@@ -1,3 +1,10 @@
+
 @import "tailwindcss";
 
+@source "./pages";
+@source "./features";
+@source "./components";
+@source "./layouts";
+
 @custom-variant dark (&:where(.dark, .dark *));
+
