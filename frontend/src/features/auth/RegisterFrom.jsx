@@ -15,7 +15,10 @@ export default function RegisterFrom() {
     avatar: null,
     coverImage: null
   })
+  const navigate = useNavigate();
   const [error, setError] = useState("") 
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
 
   const handleChange = (event) => {
     const {value,name} = event.target
@@ -28,11 +31,21 @@ export default function RegisterFrom() {
 
   const handleFileChange = (event) => {
     const {files,name} = event.target
+    const file = files[0]
+    if (!file) return;
 
-    setDetails({
-      ...details,
-      [name]: files[0]
-    })
+    setDetails((prev) => ({
+      ...prev,
+      [name]: file
+    }))
+    
+    if (name === "avatar") {
+    
+      setAvatarPreview(URL.createObjectURL(file));
+    } else if (name === "coverImage") {
+    
+      setCoverPreview(URL.createObjectURL(file));
+    }
   }
 
   const handleSubmit = async(event) => {
@@ -149,7 +162,17 @@ export default function RegisterFrom() {
           Profile Picture
         </label>
         <div className="mt-2 flex items-center gap-x-4">
-          <UserCircleIcon aria-hidden="true" className="h-14 w-14 text-gray-400" />
+          {avatarPreview ? (
+            // If an image is selected, show it
+            <img 
+              src={avatarPreview} 
+              alt="Avatar Preview" 
+              className="h-14 w-14 rounded-full object-cover ring-2 ring-[#2E6F40]" 
+            />
+          ) : (
+            // If NO image is selected, show the default icon
+            <UserCircleIcon aria-hidden="true" className="h-14 w-14 text-gray-400" />
+          )}
           <label
             htmlFor="avatar-upload"
             className="cursor-pointer rounded-md bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-all hover:bg-gray-100 dark:bg-white/10 dark:text-white dark:ring-0 dark:hover:bg-white/20"
@@ -171,25 +194,57 @@ export default function RegisterFrom() {
           Cover Image
         </label>
         <div className="mt-2 flex justify-center rounded-xl border border-dashed border-gray-900/25 bg-gray-50 px-6 py-8 transition-colors hover:border-[#68BA7F] dark:border-white/20 dark:bg-black/10 dark:hover:border-[#68BA7F]">
-          <div className="text-center">
-            <PhotoIcon aria-hidden="true" className="mx-auto h-10 w-10 text-gray-400" />
-            <div className="mt-4 flex text-sm leading-6 text-gray-700 dark:text-gray-300">
-              <label
+          {coverPreview ? (
+            // Preview Mode
+            <div className="relative w-full h-48 overflow-hidden rounded-xl">
+              <img 
+                key={coverPreview} 
+                src={coverPreview} 
+                alt="Cover Preview" 
+                className="w-full h-full object-cover" 
+              />
+              
+              <label 
                 htmlFor="cover-upload"
-                className="relative cursor-pointer rounded-md bg-transparent font-semibold text-[#2E6F40] transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-[#2E6F40] focus-within:ring-offset-2 hover:text-[#68BA7F] dark:text-[#68BA7F] dark:hover:text-[#CFFFDC]"
+                className="absolute bottom-3 right-3 cursor-pointer rounded-md bg-black/60 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/80 transition-colors z-10"
               >
-                <span>Upload a file</span>
+                Change
+                {/* Input inside label - this acts as the "Change" trigger */}
                 <input 
-                id="cover-upload" 
-                name="coverImage"
-                onChange={handleFileChange} 
-                type="file" 
-                className="sr-only" />
+                  id="cover-upload" 
+                  name="coverImage" 
+                  type="file" 
+                  className="sr-only" 
+                  onChange={handleFileChange} 
+                  accept="image/*"
+                />
               </label>
-              <p className="pl-1">or drag and drop</p>
             </div>
-            <p className="text-xs leading-5 text-gray-500 dark:text-gray-400">PNG, JPG, GIF up to 10MB</p>
-          </div>
+          ) : (
+            // Upload Mode
+            <div className="text-center py-8">
+              <PhotoIcon aria-hidden="true" className="mx-auto h-10 w-10 text-gray-400 dark:text-gray-400" />
+              <div className="mt-4 flex text-sm leading-6 text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="cover-upload"
+                  className="relative cursor-pointer rounded-md bg-transparent font-semibold text-[#2E6F40] transition-colors hover:text-[#68BA7F] dark:text-[#68BA7F] dark:hover:text-[#CFFFDC]"
+                >
+                  <span>Upload a file</span>
+                  {/* Same ID and Name as above - this acts as the "Upload" trigger */}
+                  <input 
+                    id="cover-upload" 
+                    name="coverImage" 
+                    type="file" 
+                    className="sr-only" 
+                    onChange={handleFileChange} 
+                    accept="image/*"
+                  />
+                </label>
+                <p className="pl-1">or drag and drop</p>
+              </div>
+              <p className="text-xs leading-5 text-gray-500 dark:text-gray-400">PNG, JPG, GIF up to 10MB</p>
+            </div>
+          )}
         </div>
       </div>
 
