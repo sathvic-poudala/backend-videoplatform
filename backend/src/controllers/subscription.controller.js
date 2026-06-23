@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import { asyncHandler } from '../utils/asyncHandler';
 import { Subscription } from '../models/subscription.model';
+import { ApiError } from '../utils/ApiError';
+import { ApiResponse } from '../utils/ApiResponse';
 
 const createSubscription = async(userId,channelId) => {
     const createSubscrption = await Subscription.create({
@@ -42,8 +44,69 @@ const toggleSubscription = asyncHandler(async(req,res) => {
     
 })
 
+const getUserChannelSubscribers = asyncHandler(async (req, res) => {
+    const {channelId} = req.params
+    
+
+    const totalSubscribers = await Subscription.countDocuments({
+        channel: channelId,
+    });
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "found subs",
+            totalSubscribers
+        )
+    )
+})
+
+const getSubscribedChannels = asyncHandler(async (req, res) => {
+    const { subscriberId } = req.params
+
+    const subscribedChannels = await Subscription.aggregate([
+        {
+            subscriber: new mongoose.Types.ObjectId(subscriberId)
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "channel",
+                foreignField: "_id",
+                as: "channels",
+                pipeline: [
+                    {
+                        $project: {
+                            avatar: 1,
+                            userName: 1,
+                            fullName: 1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$channels",
+        }
+    ])
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "found channels user subed to",
+            subscribedChannels
+        )
+    )
+})
+
 
 
 export {
-    toggleSubscription
+    toggleSubscription,
+    getUserChannelSubscribers,
+    getSubscribedChannels
 }
