@@ -8,3 +8,7 @@ export function logoutUser() {
   return api.post("/users/logout");
 }
 
+
+export function getCurrentUser() {
+  return api.get("/users/getCurrentUser");
+}

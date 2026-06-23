@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthContext from "./AuthContext.jsx";
 import {
   loginUser,
@@ -8,6 +8,21 @@ import {
 function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+           const checkLoggedInUser = async () => {
+                try {
+                const response = await getCurrentUser();
+                setUser(response.data.data);
+                } catch (error) {
+                setUser(null);
+                } finally {
+                setLoading(false);
+                }
+            };
+
+        checkLoggedInUser(); 
+    },[])
 
     const login = async(credentials) => {
         try {
