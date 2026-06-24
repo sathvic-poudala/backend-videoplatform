@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import { asyncHandler } from '../utils/asyncHandler';
-import { Subscription } from '../models/subscription.model';
-import { ApiError } from '../utils/ApiError';
-import { ApiResponse } from '../utils/ApiResponse';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { Subscription } from '../models/subscription.model.js';
+import { ApiError } from '../utils/ApiError.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
 
 const createSubscription = async(userId,channelId) => {
     const createSubscrption = await Subscription.create({
@@ -68,7 +68,9 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
 
     const subscribedChannels = await Subscription.aggregate([
         {
-            subscriber: new mongoose.Types.ObjectId(subscriberId)
+            $match: {
+                subscriber: new mongoose.Types.ObjectId(subscriberId)
+            }
         },
         {
             $lookup: {

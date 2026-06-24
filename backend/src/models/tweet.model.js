@@ -1,4 +1,4 @@
-import moongoose,{ Schmea } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const tweetSchema = new Schema({
     content: {
@@ -10,6 +10,6 @@ const tweetSchema = new Schema({
         ref: 'User',
         required: true,
     },
-},{ timestamps: true });
+}, { timestamps: true });
 
-export const Tweet = moongoose.model('Tweet', tweetSchema);
+export const Tweet = mongoose.model('Tweet', tweetSchema);

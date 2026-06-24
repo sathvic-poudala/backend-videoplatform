@@ -55,7 +55,7 @@ const toggleCommentLike = asyncHandler(async(req,res) => {
 
     const liked = await Like.findOneAndDelete({
         likedBy: userId,
-        video: commentId
+        comment: commentId
     })
 
     if(!liked) {
@@ -83,7 +83,7 @@ const toggleTweetLike = asyncHandler(async(req,res) => {
 
     const liked = await Like.findOneAndDelete({
         likedBy: userId,
-        video: tweetId
+        tweet: tweetId
     })
 
     if(!liked) {
