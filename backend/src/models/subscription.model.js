@@ -4,11 +4,11 @@ import { User } from "./user.model";
 const subscriptionSchema = new Schema({
     subscriber: {
         type: Schema.Types.ObjectId,//the user who is subscribing
-        ref: User
+        ref: 'User'
     },
     channel: {
         type: Schema.Types.ObjectId,//the channel or user to which our curruser is subscribing
-        ref: User
+        ref: 'User'
     }
 })
 

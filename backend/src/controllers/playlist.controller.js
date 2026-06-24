@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Playlist } from "../models/playlist.model.js";
+import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -26,9 +27,8 @@ const createPlaylist = asyncHandler(async(req, res) => {
         new ApiResponse(
             201,
             "new playlist created successfully",
-            createPlaylist
+            createdPlaylist
         )
-    )
 })
 
 const getUserPlaylists = asyncHandler(async(req, res) => {
@@ -36,8 +36,8 @@ const getUserPlaylists = asyncHandler(async(req, res) => {
 
     const playlists = await Playlist.find({ createdBy: userId });
 
-    if(!playlists) {
-        throw new ApiError(400, "user has no playlist");
+    if(!playlists || playlists.length === 0) {
+        throw new ApiError(404, "user has no playlist");
         
     }
 
@@ -115,7 +115,7 @@ const getPlaylistById = asyncHandler(async(req, res) => {
 const addVideoToPlaylist = asyncHandler(async(req, res) => {
     const {videoId, playlistId} = req.params
 
-    const videoExists = Video.findById(videoId)
+    const videoExists = await Video.findById(videoId)
 
     if(!videoExists) {
         throw new ApiError(404,"video dosenot exists")
@@ -151,7 +151,7 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
 const removeVideoFromPlaylist = asyncHandler(async(req, res) => {
     const {videoId, playlistId} = req.params
 
-    const videoExists = Video.findById(videoId)
+    const videoExists = await Video.findById(videoId)
 
     if(!videoExists) {
         throw new ApiError(404,"video dosenot exists")
@@ -199,7 +199,7 @@ const deletePlaylist = asyncHandler(async(req, res) => {
         new ApiResponse(
             200,
             "playlist deleted successfully",
-            deletePlaylist
+            deletedPlaylist
         )
     )
 })
@@ -220,7 +220,7 @@ const updatePlaylist = asyncHandler(async(req, res) => {
         }
     )
 
-    if(!updatePlaylist) {
+    if(!updatedPlaylist) {
         throw new ApiError(404,"playlist dosenot exist")
     }
 
@@ -230,7 +230,7 @@ const updatePlaylist = asyncHandler(async(req, res) => {
         new ApiResponse(
             200,
             "playlist details updated successfully",
-            updatePlaylist
+            updatedPlaylist
         )
     )
 })

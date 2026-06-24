@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
-import { subscribe } from "diagnostics_channel";
-import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Video } from "../models/video.model.js";
 
@@ -38,28 +36,24 @@ const getChannelStats = asyncHandler(async(req,res) => {
                     $size: "$subcribers"
                 },
                 totalVideos: {
-                    $size: "$videos.views"
-                },
-                totalLikes: {
-                    $size: "$videos.likes"
+                    $size: "$videos"
                 },
                 totalViews: {
-                    $size: "$videos.views"
+                    $sum: "$videos.views"
                 }
             }
         },
         {
             $project: {
                 totalSubscribers: 1,
-                totalLikes: 1,
                 totalViews: 1,
                 totalVideos: 1
             }
         }
     ])
 
-    if(!stats) {
-        throw new ApiError(400, "no stats found")
+    if(!stats || !stats.length) {
+        throw new ApiError(404, "no stats found")
     }
 
     return res
@@ -83,8 +77,8 @@ const getChannelVideos  = asyncHandler(async(req,res) => {
         }
     ])
 
-    if(!videos) {
-        throw new ApiError(400,"no videos found")
+    if(!videos || !videos.length) {
+        throw new ApiError(404,"no videos found")
     }
 
     return res

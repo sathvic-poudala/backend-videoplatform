@@ -1,6 +1,6 @@
-import router from "express";
+import { Router } from "express";
 
-const healthCheckRouter = router()
+const healthCheckRouter = Router()
 
 healthCheckRouter.get("/", (req, res) => {
     res.status(200).json({

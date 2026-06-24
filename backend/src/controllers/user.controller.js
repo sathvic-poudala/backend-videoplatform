@@ -4,8 +4,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async(userId) => {
     const user = await User.findById(userId)
@@ -215,10 +215,11 @@ const refreshAccessToken = asyncHandler(async(req,res) => {
 
     return res
     .status(200)
-    .cookie("accessToken",accessToken,options)  
+    .cookie("accessToken",accessToken,options)
     .cookie("refreshToken",refreshToken,options)
     .json(
-        new ApiResponse(201,
+        new ApiResponse(
+            200,
             "tokens generated successfully",
             {
                 accessToken,
@@ -445,7 +446,6 @@ const getUserChannelProfile = asyncHandler(async(req,res) => {
         }
     ])
 
-    console.log(channel);
     if(!channel.length) {
         throw new ApiError(404,"channel dosenot exist")
     }

@@ -79,7 +79,11 @@ const addComment = asyncHandler(async(req,res) => {
     const userId = req.user._id
     const {content} = req.body
 
-    const comment = createComment(videoId, userId, content)
+    const comment = await createComment(videoId, userId, content)
+
+    if (!comment) {
+        throw new ApiError(500, "Failed to create comment");
+    }
 
     return res
     .status(200)
