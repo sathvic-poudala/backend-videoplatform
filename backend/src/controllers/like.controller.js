@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import { Like } from "../models/like.model.js"
+import { Video } from "../models/video.model.js"
+import { Comment } from "../models/comment.model.js"
+import { Tweet } from "../models/tweet.model.js"
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -32,6 +35,7 @@ const toggleVideoLike = asyncHandler(async(req,res) => {
 
     if(!liked) {
         await createLike(userId,videoId,"video")
+        await Video.findByIdAndUpdate(videoId, { $inc: { likes: 1 } })
 
         return res
         .status(200)
@@ -39,6 +43,8 @@ const toggleVideoLike = asyncHandler(async(req,res) => {
             new ApiResponse(200,"like has been added")
         )
     }
+
+    await Video.findByIdAndUpdate(videoId, { $inc: { likes: -1 } })
 
     return res
     .status(200)
@@ -60,6 +66,7 @@ const toggleCommentLike = asyncHandler(async(req,res) => {
 
     if(!liked) {
         await createLike(userId,commentId,"comment")
+        await Comment.findByIdAndUpdate(commentId, { $inc: { likes: 1 } })
 
         return res
         .status(200)
@@ -67,6 +74,8 @@ const toggleCommentLike = asyncHandler(async(req,res) => {
             new ApiResponse(200,"like has been added")
         )
     }
+
+    await Comment.findByIdAndUpdate(commentId, { $inc: { likes: -1 } })
 
     return res
     .status(200)
@@ -88,6 +97,7 @@ const toggleTweetLike = asyncHandler(async(req,res) => {
 
     if(!liked) {
         await createLike(userId,tweetId,"tweet")
+        await Tweet.findByIdAndUpdate(tweetId, { $inc: { likes: 1 } })
 
         return res
         .status(200)
@@ -95,6 +105,8 @@ const toggleTweetLike = asyncHandler(async(req,res) => {
             new ApiResponse(200,"like has been added")
         )
     }
+
+    await Tweet.findByIdAndUpdate(tweetId, { $inc: { likes: -1 } })
 
     return res
     .status(200)
@@ -172,8 +184,6 @@ const getLikedVideos = asyncHandler(async(req,res) => {
     )
 })
 
-//TASK TO BE DONE!!! 
-// need to update like in video every time a like created and deleted
 export { 
     toggleVideoLike,
     toggleCommentLike,

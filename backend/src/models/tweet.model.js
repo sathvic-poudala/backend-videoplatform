@@ -10,6 +10,10 @@ const tweetSchema = new Schema({
         ref: 'User',
         required: true,
     },
+    likes: {
+        type: Number,
+        default: 0
+    }
 }, { timestamps: true });
 
 export const Tweet = mongoose.model('Tweet', tweetSchema);
