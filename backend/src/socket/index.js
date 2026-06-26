@@ -1,6 +1,6 @@
 import { connection } from "mongoose";
 import { Server, Socket } from "socket.io";
-import { Room } from "../models/room.model";
+import { Room } from "../models/room.model.js";
 
 let io;
 const roomStates = new Map();
@@ -42,6 +42,25 @@ export const initializeSocket = (server) => {
             } catch (error) {
                 socket.emit("error", { message: "Failed to join room" });
             }
+        })
+
+        socket.on("video:play", async({ roomCode, currentTime, userId }) => {
+            const room = await Room.findOne({ roomCode });
+            if (!room) return;
+
+            const isHost = room.hostId.toString() === userId;
+            if (!isHost && !room.everyoneCanControl) {
+                return socket.emit("error", { message: "Only host can control video" });
+            }
+
+            await Room.findByIdAndUpdate(room._id, {
+                isPlaying: true,
+                currentTime,
+                lastUpdatedAt: new Date()
+            })
+
+            roomStates.set(roomCode, { roomCode, isPlaying: true, currentTime, lastUpdatedAt: new Date() });
+            socket.to(roomCode).emit("video:play", { currentTime });
         })
 
         socket.on("disconnect", () => {

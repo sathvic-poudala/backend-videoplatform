@@ -9,7 +9,7 @@ const generateRoomCode = () => {
 }
 
 const createRoom = asyncHandler(async(req,res) => {
-    const { videoId } = req.body;
+    const { videoId, everyoneCanControl } = req.body;
     const hostId = req.user._id;
 
     let roomCode;
@@ -25,7 +25,8 @@ const createRoom = asyncHandler(async(req,res) => {
         hostId,
         videoId,
         isPlaying: false,
-        currentTime: 0
+        currentTime: 0,
+        everyoneCanControl: everyoneCanControl || false
     })
 
     return res
