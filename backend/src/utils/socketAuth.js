@@ -2,8 +2,9 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 
 export const verifySocketJWT = async (socket, next) => {
+    const cookieHeader = socket.handshake.headers?.cookie || "";
     const token = socket.handshake.auth?.token || 
-        socket.handshake.headers?.cookie?.split('accessToken=')[1]?.split(';')[0];
+        cookieHeader.split("; ").find(c => c.startsWith("accessToken="))?.split("=")[1];
     
     if (!token) return next(new Error("Authentication error"));
     

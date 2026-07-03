@@ -79,6 +79,11 @@ const addComment = asyncHandler(async(req,res) => {
     const userId = req.user._id
     const {content} = req.body
 
+    const video = await Video.findById(videoId)
+    if (!video) {
+        throw new ApiError(404, "Video does not exist");
+    }
+
     const comment = await createComment(videoId, userId, content)
 
     if (!comment) {

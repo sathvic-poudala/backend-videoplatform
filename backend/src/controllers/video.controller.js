@@ -24,12 +24,11 @@ const isUserAuthorized = async (videoId, userId) => {
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const userId = req.user._id;
+
+  await isUserAuthorized(videoId, userId);
 
   const video = await Video.findById(videoId);
-
-  if (!video) {
-    throw new ApiError(400, "video does not exist");
-  }
 
   const toggledVideo = await Video.findByIdAndUpdate(
     videoId,

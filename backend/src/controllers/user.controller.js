@@ -135,12 +135,12 @@ const loginUser = asyncHandler(async(req,res) => {
     }
 
     return res
-    .status(201)
+    .status(200)
     .cookie("accessToken",accessToken,options)
     .cookie("refreshToken",refreshToken,options)
     .json(
         new ApiResponse(
-            201,
+            200,
             "user logged in sucessfully",
             {
                 refreshToken,
@@ -388,16 +388,16 @@ const updateCoverImage = asyncHandler(async(req,res) => {
 })
 
 const getUserChannelProfile = asyncHandler(async(req,res) => {
-    const {userName} = req.params
+    const {username} = req.params
 
-    if(!userName?.trim()) {
-        throw new ApiError(400,"userName is missing")
+    if(!username?.trim()) {
+        throw new ApiError(400,"username is missing")
     }
 
     const channel = await User.aggregate([
         {
             $match: {
-                userName: userName.toLowerCase()
+                userName: username.toLowerCase()
             }
         },
         {
