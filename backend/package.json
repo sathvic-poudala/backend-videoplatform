@@ -1,7 +1,7 @@
 {
   "name": "project_youtube",
   "version": "1.0.0",
-  "description": "my project withh baceknd of youtube and some other extra funtionalities",
+  "description": "video streaming backend with watch-together rooms and real-time chat",
   "type": "module",
   "main": "index.js",
   "scripts": {
