@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Room } from "../models/room.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { ChatMessage } from "../models/chatMessage.model.js";
 
 const generateRoomCode = () => {
     return crypto.randomBytes(3).toString('hex').toUpperCase();

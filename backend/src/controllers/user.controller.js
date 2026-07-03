@@ -156,7 +156,7 @@ const logoutUser = asyncHandler(async(req,res) => {
     /** destroy cookies and remove refresh token from user in mongodb database */
     const userId = req.user?._id
 
-    User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
         userId,
         {
             $unset: {

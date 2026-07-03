@@ -121,6 +121,15 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
         throw new ApiError(404,"video dosenot exists")
     }
 
+    const playlist = await Playlist.findById(playlistId)
+    if (!playlist) {
+        throw new ApiError(404,"playlist dosenot exists")
+    }
+
+    if (playlist.createdBy.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "You are not authorized to modify this playlist");
+    }
+
     const updatedPlaylist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
@@ -132,10 +141,6 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
             new: true
         }
     )
-
-    if(!updatedPlaylist) {
-        throw new ApiError(404,"playlist dosenot exists")
-    }
 
     return res
     .status(200)
