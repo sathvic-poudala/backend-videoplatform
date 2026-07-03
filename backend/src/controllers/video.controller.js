@@ -107,6 +107,10 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   const pipeline = [];
 
+  if (userId && !mongoose.isValidObjectId(userId)) {
+    throw new ApiError(400, "Invalid userId");
+  }
+
   if (userId) {
     pipeline.push({
       $match: {

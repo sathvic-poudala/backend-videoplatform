@@ -5,6 +5,10 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 
 const createSubscription = async(userId,channelId) => {
+    if (userId.toString() === channelId.toString()) {
+        throw new ApiError(400, "Cannot subscribe to yourself");
+    }
+
     const createSubscrption = await Subscription.create({
         subscriber: userId,
         channel: channelId
