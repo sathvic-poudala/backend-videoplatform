@@ -103,11 +103,15 @@ export const initializeSocket = (server) => {
         });
 
         socket.on("chat:send", async({ roomCode, message }) => {
+            if (!message?.trim()) {
+                return socket.emit("error", { message: "Empty message" });
+            }
+
             const room = await Room.findOne({ roomCode });
             if (!room) return;
 
-            await ChatMessage.create({ roomId: room._id, senderId: socket.user._id, message });
-            io.to(roomCode).emit("chat:message", { userId: socket.user._id, message, createdAt: new Date() });
+            await ChatMessage.create({ roomId: room._id, senderId: socket.user._id, message: message.trim() });
+            io.to(roomCode).emit("chat:message", { userId: socket.user._id, message: message.trim(), createdAt: new Date() });
         });
 
         socket.on("disconnect", () => {
