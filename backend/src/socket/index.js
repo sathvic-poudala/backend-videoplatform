@@ -1,6 +1,7 @@
-import { connection } from "mongoose";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { Room } from "../models/room.model.js";
+import { ChatMessage } from "../models/chatMessage.model.js";
+import { verifySocketJWT } from "../utils/socketAuth.js";
 
 let io;
 const roomStates = new Map();
@@ -13,6 +14,8 @@ export const initializeSocket = (server) => {
             credentials: true
         }
     });
+
+    io.use(verifySocketJWT);
 
     io.on("connection", (socket) => {
         console.log(`User connected: ${socket.id}`);
@@ -29,7 +32,9 @@ export const initializeSocket = (server) => {
                     videoId: room.videoId,
                     isPlaying: room.isPlaying,
                     currentTime: room.currentTime,
-                    lastUpdatedAt: room.lastUpdatedAt
+                    lastUpdatedAt: room.lastUpdatedAt,
+                    hostId: room.hostId,
+                    everyoneCanControl: room.everyoneCanControl
                 }
 
                 if(room.isPlaying && state.lastUpdatedAt) {
@@ -44,11 +49,11 @@ export const initializeSocket = (server) => {
             }
         })
 
-        socket.on("video:play", async({ roomCode, currentTime, userId }) => {
+        socket.on("video:play", async({ roomCode, currentTime }) => {
             const room = await Room.findOne({ roomCode });
             if (!room) return;
 
-            const isHost = room.hostId.toString() === userId;
+            const isHost = room.hostId.toString() === socket.user._id;
             if (!isHost && !room.everyoneCanControl) {
                 return socket.emit("error", { message: "Only host can control video" });
             }
@@ -62,6 +67,48 @@ export const initializeSocket = (server) => {
             roomStates.set(roomCode, { roomCode, isPlaying: true, currentTime, lastUpdatedAt: new Date() });
             socket.to(roomCode).emit("video:play", { currentTime });
         })
+
+        socket.on("video:pause", async({ roomCode, currentTime }) => {
+            const room = await Room.findOne({ roomCode });
+            if (!room) return;
+
+            const isHost = room.hostId.toString() === socket.user._id;
+            if (!isHost && !room.everyoneCanControl) {
+                return socket.emit("error", { message: "Only host can control video" });
+            }
+
+            await Room.findByIdAndUpdate(room._id, {
+                isPlaying: false,
+                currentTime,
+                lastUpdatedAt: new Date()
+            })
+
+            roomStates.set(roomCode, { roomCode, isPlaying: false, currentTime, lastUpdatedAt: new Date() });
+            socket.to(roomCode).emit("video:pause", { currentTime });
+        });
+
+        socket.on("video:seek", async({ roomCode, currentTime }) => {
+            const room = await Room.findOne({ roomCode });
+            if (!room) return;
+
+            const isHost = room.hostId.toString() === socket.user._id;
+            if (!isHost && !room.everyoneCanControl) {
+                return socket.emit("error", { message: "Only host can control video" });
+            }
+
+            await Room.findByIdAndUpdate(room._id, { currentTime });
+            const state = roomStates.get(roomCode) || {};
+            roomStates.set(roomCode, { ...state, currentTime });
+            socket.to(roomCode).emit("video:seek", { currentTime });
+        });
+
+        socket.on("chat:send", async({ roomCode, message }) => {
+            const room = await Room.findOne({ roomCode });
+            if (!room) return;
+
+            await ChatMessage.create({ roomId: room._id, senderId: socket.user._id, message });
+            io.to(roomCode).emit("chat:message", { userId: socket.user._id, message, createdAt: new Date() });
+        });
 
         socket.on("disconnect", () => {
             console.log(`User disconnected: ${socket.id}`);
