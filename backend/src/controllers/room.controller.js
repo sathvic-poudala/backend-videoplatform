@@ -52,13 +52,61 @@ const joinRoom = asyncHandler(async(req,res) => {
     }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200, 
-            "Room found", 
-            room
+        .status(200)
+        .json(
+            new ApiResponse(
+                200, 
+                "Room found", 
+                room
     ));
 })
 
-export { createRoom, joinRoom };
+const getChatHistory = asyncHandler(async(req,res) => {
+    const { roomCode } = req.params
+    const room = await Room.findOne({ roomCode })
+    if (!room) {
+        throw new ApiError(404, "Room not found");
+    }
+
+    const chatHistory = await ChatMessage.find({ roomId: room._id })
+        .populate('senderId', 'userName fullName avatar')
+        .sort({ createdAt: 1 })
+        .limit(100)
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200, "Chat history fetched", chatHistory
+            )
+        )
+})
+
+const updateRoomSettings = asyncHandler(async(req,res) => {
+    const { roomCode } = req.params
+    const { everyoneCanControl } = req.body
+    const userId = req.user._id
+
+    const room = await Room.findOne({ roomCode })
+    if (!room) {
+        throw new ApiError(404, "Room not found");
+    }
+
+    if (room.hostId.toString() !== userId) {
+        throw new ApiError(403, "Only host can update room settings");
+    }
+
+    const updatedRoom = await Room.findByIdAndUpdate(
+        room._id,
+        { $set: { everyoneCanControl } },
+        { new: true }
+    )
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "Room settings updated", updatedRoom)
+        )
+})
+
+export { createRoom, joinRoom, getChatHistory, updateRoomSettings };
