@@ -29,6 +29,7 @@ const createPlaylist = asyncHandler(async(req, res) => {
             "new playlist created successfully",
             createdPlaylist
         )
+    )
 })
 
 const getUserPlaylists = asyncHandler(async(req, res) => {
