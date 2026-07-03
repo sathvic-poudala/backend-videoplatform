@@ -50,68 +50,84 @@ export const initializeSocket = (server) => {
         })
 
         socket.on("video:play", async({ roomCode, currentTime }) => {
-            const room = await Room.findOne({ roomCode });
-            if (!room) return;
+            try {
+                const room = await Room.findOne({ roomCode });
+                if (!room) return;
 
-            const isHost = room.hostId.toString() === socket.user._id;
-            if (!isHost && !room.everyoneCanControl) {
-                return socket.emit("error", { message: "Only host can control video" });
+                const isHost = room.hostId.toString() === socket.user._id;
+                if (!isHost && !room.everyoneCanControl) {
+                    return socket.emit("error", { message: "Only host can control video" });
+                }
+
+                await Room.findByIdAndUpdate(room._id, {
+                    isPlaying: true,
+                    currentTime,
+                    lastUpdatedAt: new Date()
+                })
+
+                roomStates.set(roomCode, { roomCode, isPlaying: true, currentTime, lastUpdatedAt: new Date() });
+                socket.to(roomCode).emit("video:play", { currentTime });
+            } catch (error) {
+                socket.emit("error", { message: "Failed to play video" });
             }
-
-            await Room.findByIdAndUpdate(room._id, {
-                isPlaying: true,
-                currentTime,
-                lastUpdatedAt: new Date()
-            })
-
-            roomStates.set(roomCode, { roomCode, isPlaying: true, currentTime, lastUpdatedAt: new Date() });
-            socket.to(roomCode).emit("video:play", { currentTime });
         })
 
         socket.on("video:pause", async({ roomCode, currentTime }) => {
-            const room = await Room.findOne({ roomCode });
-            if (!room) return;
+            try {
+                const room = await Room.findOne({ roomCode });
+                if (!room) return;
 
-            const isHost = room.hostId.toString() === socket.user._id;
-            if (!isHost && !room.everyoneCanControl) {
-                return socket.emit("error", { message: "Only host can control video" });
+                const isHost = room.hostId.toString() === socket.user._id;
+                if (!isHost && !room.everyoneCanControl) {
+                    return socket.emit("error", { message: "Only host can control video" });
+                }
+
+                await Room.findByIdAndUpdate(room._id, {
+                    isPlaying: false,
+                    currentTime,
+                    lastUpdatedAt: new Date()
+                })
+
+                roomStates.set(roomCode, { roomCode, isPlaying: false, currentTime, lastUpdatedAt: new Date() });
+                socket.to(roomCode).emit("video:pause", { currentTime });
+            } catch (error) {
+                socket.emit("error", { message: "Failed to pause video" });
             }
-
-            await Room.findByIdAndUpdate(room._id, {
-                isPlaying: false,
-                currentTime,
-                lastUpdatedAt: new Date()
-            })
-
-            roomStates.set(roomCode, { roomCode, isPlaying: false, currentTime, lastUpdatedAt: new Date() });
-            socket.to(roomCode).emit("video:pause", { currentTime });
         });
 
         socket.on("video:seek", async({ roomCode, currentTime }) => {
-            const room = await Room.findOne({ roomCode });
-            if (!room) return;
+            try {
+                const room = await Room.findOne({ roomCode });
+                if (!room) return;
 
-            const isHost = room.hostId.toString() === socket.user._id;
-            if (!isHost && !room.everyoneCanControl) {
-                return socket.emit("error", { message: "Only host can control video" });
+                const isHost = room.hostId.toString() === socket.user._id;
+                if (!isHost && !room.everyoneCanControl) {
+                    return socket.emit("error", { message: "Only host can control video" });
+                }
+
+                await Room.findByIdAndUpdate(room._id, { currentTime });
+                const state = roomStates.get(roomCode) || {};
+                roomStates.set(roomCode, { ...state, currentTime });
+                socket.to(roomCode).emit("video:seek", { currentTime });
+            } catch (error) {
+                socket.emit("error", { message: "Failed to seek video" });
             }
-
-            await Room.findByIdAndUpdate(room._id, { currentTime });
-            const state = roomStates.get(roomCode) || {};
-            roomStates.set(roomCode, { ...state, currentTime });
-            socket.to(roomCode).emit("video:seek", { currentTime });
         });
 
         socket.on("chat:send", async({ roomCode, message }) => {
-            if (!message?.trim()) {
-                return socket.emit("error", { message: "Empty message" });
+            try {
+                if (!message?.trim()) {
+                    return socket.emit("error", { message: "Empty message" });
+                }
+
+                const room = await Room.findOne({ roomCode });
+                if (!room) return;
+
+                await ChatMessage.create({ roomId: room._id, senderId: socket.user._id, message: message.trim() });
+                io.to(roomCode).emit("chat:message", { userId: socket.user._id, message: message.trim(), createdAt: new Date() });
+            } catch (error) {
+                socket.emit("error", { message: "Failed to send message" });
             }
-
-            const room = await Room.findOne({ roomCode });
-            if (!room) return;
-
-            await ChatMessage.create({ roomId: room._id, senderId: socket.user._id, message: message.trim() });
-            io.to(roomCode).emit("chat:message", { userId: socket.user._id, message: message.trim(), createdAt: new Date() });
         });
 
         socket.on("disconnect", () => {
