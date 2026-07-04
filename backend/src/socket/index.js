@@ -5,7 +5,6 @@ import { verifySocketJWT } from "../utils/socketAuth.js";
 
 let io;
 const roomStates = new Map();
-const userSockets = new Map();
 
 export const initializeSocket = (server) => {
     io = new Server(server, {
