@@ -15,7 +15,7 @@ const createSubscription = async(userId,channelId) => {
     })
 
     if(!createSubscrption) {
-        throw new ApiError(500,"something went wrong while creating a Subscrption")
+        throw new ApiError(500,"something went wrong while creating a Subscription")
     }
 
     return {createSubscrption}
@@ -31,40 +31,29 @@ const toggleSubscription = asyncHandler(async(req,res) => {
     })
 
     if(!subscription) {
-        await createSubscription(userId,channelId)
-
-        return res
-        .status(200)
-        .json(
-            new ApiResponse(200,"subscription has been added")
-        )
+        try {
+            await createSubscription(userId,channelId)
+            return res.status(200).json(new ApiResponse(200, "subscription has been added"))
+        } catch (err) {
+            if (err.code === 11000) {
+                await Subscription.findOneAndDelete({ subscriber: userId, channel: channelId })
+                return res.status(200).json(new ApiResponse(200, "subscription has been removed"))
+            }
+            throw err
+        }
     }
 
-    return res
-    .status(200)
-    .json(
-            new ApiResponse(200,"subscription has been removed")
-        )
-    
+    return res.status(200).json(new ApiResponse(200, "subscription has been removed"))
 })
 
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     const {channelId} = req.params
-    
 
     const totalSubscribers = await Subscription.countDocuments({
         channel: channelId,
     });
 
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "found subs",
-            totalSubscribers
-        )
-    )
+    return res.status(200).json(new ApiResponse(200, "found subs", totalSubscribers))
 })
 
 const getSubscribedChannels = asyncHandler(async (req, res) => {
@@ -98,18 +87,8 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         }
     ])
 
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "found channels user subed to",
-            subscribedChannels
-        )
-    )
+    return res.status(200).json(new ApiResponse(200, "found channels user subed to", subscribedChannels))
 })
-
-
 
 export {
     toggleSubscription,
