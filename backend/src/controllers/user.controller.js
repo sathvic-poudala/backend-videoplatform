@@ -3,7 +3,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
@@ -37,7 +36,7 @@ const registerUser = asyncHandler(async(req,res) => {
     if (
         [userName,email,fullName,password].some((feild) => feild?.trim() === "")
     ) {
-        throw new ApiError(400,"all feilds are required")
+        throw new ApiError(400,"all fields are required")
     }
 
     if(!email.includes('@')) {
@@ -58,7 +57,7 @@ const registerUser = asyncHandler(async(req,res) => {
     
 
     if(!avatarLocalPath) {
-        throw new ApiError(400,"avatar is required1");
+        throw new ApiError(400,"avatar is required");
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
@@ -81,7 +80,7 @@ const registerUser = asyncHandler(async(req,res) => {
         "-password -refreshToken"
     )
     if(!createdUser) {
-        throw new ApiError(500,"smth went wrong while regestering user")
+        throw new ApiError(500,"something went wrong while registering user")
     }
 
     return res.status(201).json(
@@ -99,7 +98,7 @@ const loginUser = asyncHandler(async(req,res) => {
     const {email,password} = req.body;
 
     if(!email) {
-        throw new ApiError(400,"all feilds are required");
+        throw new ApiError(400,"all fields are required");
     }
 
     if(email && !email.includes("@")) {
@@ -200,8 +199,6 @@ const refreshAccessToken = asyncHandler(async(req,res) => {
         throw new ApiError(401,"invalid refreshToken")
     }
 
-    console.log("incoming token:", token)
-    console.log("token in db:", user.refreshToken)
     if(token !== user.refreshToken) {
         throw new ApiError(401,"refreshToken expired")
     }
@@ -235,7 +232,7 @@ const changeCurrentPassword = asyncHandler(async(req,res) => {
     const {oldPassword,newPassword} = req.body
 
     if(!oldPassword || !newPassword) {
-        throw new ApiError(400,"all feilds are required")
+        throw new ApiError(400,"all fields are required")
     }
 
     if(oldPassword === newPassword) {
@@ -278,7 +275,7 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
     const {email,fullName} = req.body
 
     if(!email || !fullName) {
-        throw new ApiError(400,"all feilds are required")
+        throw new ApiError(400,"all fields are required")
     }
 
     const user = await User.findByIdAndUpdate(req.user?._id, {
@@ -294,7 +291,7 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
     .status(200)
     .json(
         new ApiResponse(200,
-            "account details updated succesfully",
+            "account details updated successfully",
             {
                 user
             }
@@ -447,7 +444,7 @@ const getUserChannelProfile = asyncHandler(async(req,res) => {
     ])
 
     if(!channel.length) {
-        throw new ApiError(404,"channel dosenot exist")
+        throw new ApiError(404,"channel does not exist")
     }
 
     return res
