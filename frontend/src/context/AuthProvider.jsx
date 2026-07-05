@@ -3,6 +3,7 @@ import AuthContext from "./AuthContext.jsx";
 import {
   loginUser,
   logoutUser,
+  getCurrentUser,
 } from "../features/auth/auth.api";
 
 function AuthProvider({ children }) {
