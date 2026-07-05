@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import { Comment } from "../models/comment.model.js"
+import { Like } from "../models/like.model.js"
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { User } from "../models/user.model.js";
 import { Video } from "../models/video.model.js";
 
 const createComment = async(videoId, userId, content) => {
@@ -38,6 +38,24 @@ const getVideoComments = asyncHandler(async(req,res) => {
         },
         {
             $limit: limitNum
+        },
+        {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "comment",
+                as: "likesList"
+            }
+        },
+        {
+            $addFields: {
+                likesCount: { $size: "$likesList" }
+            }
+        },
+        {
+            $project: {
+                likesList: 0
+            }
         },
         {
             $lookup: {
@@ -109,7 +127,7 @@ const updateComment = asyncHandler(async(req,res) => {
     const updatedComment = await Comment.findById(commentId)
 
     if(!updatedComment) {
-        throw new ApiError(400,"comment dosenot exist")
+        throw new ApiError(400,"comment does not exist")
     }
 
     if (updatedComment.owner.toString() !== req.user._id.toString()) {
@@ -136,7 +154,7 @@ const deleteComment = asyncHandler(async(req,res) => {
     const delComment = await Comment.findById(commentId)
 
     if(!delComment) {
-        throw new ApiError(400,"comment dosenot exist")
+        throw new ApiError(400,"comment does not exist")
     }
 
     if (delComment.owner.toString() !== req.user._id.toString()) {
