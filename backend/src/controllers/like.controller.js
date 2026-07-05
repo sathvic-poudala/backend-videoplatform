@@ -1,119 +1,33 @@
 import mongoose from "mongoose";
 import { Like } from "../models/like.model.js"
-import { Video } from "../models/video.model.js"
-import { Comment } from "../models/comment.model.js"
-import { Tweet } from "../models/tweet.model.js"
-import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 
-const createLike = async(userId,objectId,objectType) => {
-    const createLike = await Like.create({
-        video: objectType === "video" ? objectId : null,
-        comment: objectType === "comment" ? objectId : null,
-        tweet: objectType === "tweet" ? objectId : null,
-        likedBy: userId
-    })
-
-    if(!createLike) {
-        throw new ApiError(500,"something went wrong while creating a like")
-    }
-
-    return {createLike};
-}
+const toggleLike = async (userId, field, objectId) => {
+    const filter = { likedBy: userId, [field]: objectId };
+    const deleted = await Like.findOneAndDelete(filter);
+    if (deleted) return "like has been removed";
+    await Like.create({ ...filter });
+    return "like has been added";
+};
 
 const toggleVideoLike = asyncHandler(async(req,res) => {
     const {videoId} = req.params
-
-    const userId = req.user._id
-
-    const liked = await Like.findOneAndDelete({
-        likedBy: userId,
-        video: videoId
-    })
-
-    if(!liked) {
-        await createLike(userId,videoId,"video")
-        await Video.findByIdAndUpdate(videoId, { $inc: { likes: 1 } })
-
-        return res
-        .status(200)
-        .json(
-            new ApiResponse(200,"like has been added")
-        )
-    }
-
-    await Video.findByIdAndUpdate(videoId, { $inc: { likes: -1 } })
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200,"like has been removed")
-    )
-
+    const message = await toggleLike(req.user._id, "video", videoId)
+    return res.status(200).json(new ApiResponse(200, message))
 })
 
 const toggleCommentLike = asyncHandler(async(req,res) => {
     const {commentId} = req.params
-
-    const userId = req.user._id
-
-    const liked = await Like.findOneAndDelete({
-        likedBy: userId,
-        comment: commentId
-    })
-
-    if(!liked) {
-        await createLike(userId,commentId,"comment")
-        await Comment.findByIdAndUpdate(commentId, { $inc: { likes: 1 } })
-
-        return res
-        .status(200)
-        .json(
-            new ApiResponse(200,"like has been added")
-        )
-    }
-
-    await Comment.findByIdAndUpdate(commentId, { $inc: { likes: -1 } })
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200,"like has been removed")
-    )
-
+    const message = await toggleLike(req.user._id, "comment", commentId)
+    return res.status(200).json(new ApiResponse(200, message))
 })
 
 const toggleTweetLike = asyncHandler(async(req,res) => {
     const {tweetId} = req.params
-
-    const userId = req.user._id
-
-    const liked = await Like.findOneAndDelete({
-        likedBy: userId,
-        tweet: tweetId
-    })
-
-    if(!liked) {
-        await createLike(userId,tweetId,"tweet")
-        await Tweet.findByIdAndUpdate(tweetId, { $inc: { likes: 1 } })
-
-        return res
-        .status(200)
-        .json(
-            new ApiResponse(200,"like has been added")
-        )
-    }
-
-    await Tweet.findByIdAndUpdate(tweetId, { $inc: { likes: -1 } })
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200,"like has been removed")
-    )
-
+    const message = await toggleLike(req.user._id, "tweet", tweetId)
+    return res.status(200).json(new ApiResponse(200, message))
 })
 
 const getLikedVideos = asyncHandler(async(req,res) => {
@@ -170,26 +84,10 @@ const getLikedVideos = asyncHandler(async(req,res) => {
     ])
 
     if(!like || like.length === 0) {
-        return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                "no liked videos found",
-                []
-            )
-        )
+        return res.status(200).json(new ApiResponse(200, "no liked videos found", []))
     }
 
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "liked videos fetched successfully",
-            like
-        )
-    )
+    return res.status(200).json(new ApiResponse(200, "liked videos fetched successfully", like))
 })
 
 export { 
