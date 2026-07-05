@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function LoginForm() {
@@ -11,6 +11,9 @@ export default function LoginForm() {
     const [error, setError] = useState("")
     const { login, loading } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    // If redirected from a protected route, go back there after login; otherwise go home
+    const redirectTo = location.state?.from || "/";
 
     const handleChange = (event) => {
         const {value, name} = event.target
@@ -31,7 +34,7 @@ export default function LoginForm() {
         setError("")
         try {
             await login(credentials)
-            navigate("/");
+            navigate(redirectTo);
         } catch (error) {
             setError(
                 error.response?.data?.message ||
