@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Video } from "../models/video.model.js";
+import { Like } from "../models/like.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {
@@ -19,16 +20,14 @@ const isUserAuthorized = async (videoId, userId) => {
     throw new ApiError(400, "user not authorized");
   }
 
-  return true;
+  return video;
 };
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const userId = req.user._id;
 
-  await isUserAuthorized(videoId, userId);
-
-  const video = await Video.findById(videoId);
+  const video = await isUserAuthorized(videoId, userId);
 
   const toggledVideo = await Video.findByIdAndUpdate(
     videoId,
@@ -48,9 +47,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const userId = req.user._id;
-  await isUserAuthorized(videoId, userId);
-
-  const video = await Video.findById(videoId);
+  const video = await isUserAuthorized(videoId, userId);
 
   await deleteFromCloudinary(video.videoFile);
   await deleteFromCloudinary(video.thumbnail);
@@ -66,13 +63,7 @@ const updateVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
   const userId = req.user._id;
 
-  await isUserAuthorized(videoId, userId);
-
-  const video = await Video.findById(videoId);
-
-  if (!video) {
-    throw new ApiError(400, "video does not exist");
-  }
+  const video = await isUserAuthorized(videoId, userId);
 
   const updateFields = {};
 
@@ -102,7 +93,6 @@ const updateVideo = asyncHandler(async (req, res) => {
 });
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    //hardest chalenge yet
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
   const pipeline = [];
@@ -135,6 +125,27 @@ const getAllVideos = asyncHandler(async (req, res) => {
       $sort: { [sortBy]: sortType === "desc" ? -1 : 1 },
     });
   }
+
+  pipeline.push({
+    $lookup: {
+      from: "likes",
+      localField: "_id",
+      foreignField: "video",
+      as: "likesList"
+    }
+  });
+
+  pipeline.push({
+    $addFields: {
+      likesCount: { $size: "$likesList" }
+    }
+  });
+
+  pipeline.push({
+    $project: {
+      likesList: 0
+    }
+  });
 
   const options = {
     page: parseInt(page),
@@ -199,7 +210,9 @@ const getVideoById = asyncHandler(async (req, res) => {
     throw new ApiError(400, "video does not exist");
   }
 
-  return res.status(200).json(new ApiResponse(200, "video found", video));
+  const likesCount = await Like.countDocuments({ video: videoId });
+
+  return res.status(200).json(new ApiResponse(200, "video found", { ...video.toObject(), likesCount }));
 });
 
 export {
