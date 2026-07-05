@@ -119,12 +119,12 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
     const videoExists = await Video.findById(videoId)
 
     if(!videoExists) {
-        throw new ApiError(404,"video dosenot exists")
+        throw new ApiError(404,"video does not exist")
     }
 
     const playlist = await Playlist.findById(playlistId)
     if (!playlist) {
-        throw new ApiError(404,"playlist dosenot exists")
+        throw new ApiError(404,"playlist does not exist")
     }
 
     if (playlist.createdBy.toString() !== req.user._id.toString()) {
@@ -160,12 +160,12 @@ const removeVideoFromPlaylist = asyncHandler(async(req, res) => {
     const videoExists = await Video.findById(videoId)
 
     if(!videoExists) {
-        throw new ApiError(404,"video dosenot exists")
+        throw new ApiError(404,"video does not exist")
     }
 
     const playlist = await Playlist.findById(playlistId)
     if (!playlist) {
-        throw new ApiError(404,"playlist dosenot exists")
+        throw new ApiError(404,"playlist does not exist")
     }
 
     if (playlist.createdBy.toString() !== req.user._id.toString()) {
@@ -201,7 +201,7 @@ const deletePlaylist = asyncHandler(async(req, res) => {
     const deletedPlaylist = await Playlist.findByIdAndDelete(playlistId)
 
     if(!deletedPlaylist) {
-        throw new ApiError(404,"playlist dosenot exist")
+        throw new ApiError(404,"playlist does not exist")
     }
 
     return res
@@ -220,12 +220,12 @@ const updatePlaylist = asyncHandler(async(req, res) => {
     const {description, name} = req.body
 
     if(!description || !name) {
-        throw new ApiError(400,"all feilds are required")
+        throw new ApiError(400,"all fields are required")
     }
 
     const playlist = await Playlist.findById(playlistId)
     if (!playlist) {
-        throw new ApiError(404,"playlist dosenot exist")
+        throw new ApiError(404,"playlist does not exist")
     }
 
     if (playlist.createdBy.toString() !== req.user._id.toString()) {
