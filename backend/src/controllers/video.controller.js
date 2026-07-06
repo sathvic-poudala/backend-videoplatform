@@ -16,7 +16,7 @@ const isUserAuthorized = async (videoId, userId) => {
     throw new ApiError(400, "video does not exist");
   }
 
-  if (video.owner.toString() !== userId) {
+  if (!video.owner.equals(userId)) {
     throw new ApiError(400, "user not authorized");
   }
 
@@ -35,7 +35,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
       $set: { isPublished: !video.isPublished },
     },
     {
-      new: true,
+      returnDocument: 'after'
     }
   );
 
@@ -84,7 +84,7 @@ const updateVideo = asyncHandler(async (req, res) => {
   const updatedVideo = await Video.findByIdAndUpdate(
     videoId,
     { $set: updateFields },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   return res
@@ -144,6 +144,30 @@ const getAllVideos = asyncHandler(async (req, res) => {
   pipeline.push({
     $project: {
       likesList: 0
+    }
+  });
+
+  pipeline.push({
+    $lookup: {
+      from: "users",
+      localField: "owner",
+      foreignField: "_id",
+      as: "owner",
+      pipeline: [
+        {
+          $project: {
+            userName: 1,
+            fullName: 1,
+            avatar: 1
+          }
+        }
+      ]
+    }
+  });
+
+  pipeline.push({
+    $addFields: {
+      owner: { $first: "$owner" }
     }
   });
 
