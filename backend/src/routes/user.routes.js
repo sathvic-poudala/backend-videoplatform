@@ -2,6 +2,7 @@ import { Router } from "express";
 import { changeCurrentPassword, getCurrentUser, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetails, updateCoverImage, updateAvatar, getUserChannelProfile, getWatchHistory } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { validateBodyFields } from "../middlewares/validate.middleware.js";
 
 const router = Router()
 
@@ -16,26 +17,27 @@ router.route("/register").post(
             maxCount: 1
         }]
     ),
+    validateBodyFields(["userName", "email", "fullName", "password"]),
     registerUser
-)//tested
-router.route("/login").post(loginUser)//tested
+)
+router.route("/login").post(validateBodyFields(["email", "password"]), loginUser)
 
 //secure routes
-router.route("/logout").post(verifyJWT,logoutUser)//tested
-router.route("/refresh-token").post(refreshAccessToken)//tested
-router.route("/change-password").post(verifyJWT,changeCurrentPassword)//tested
-router.route("/getCurrentUser").get(verifyJWT,getCurrentUser)//tested
-router.route("/update-account").patch(verifyJWT,updateAccountDetails)//tested
+router.route("/logout").post(verifyJWT,logoutUser)
+router.route("/refresh-token").post(refreshAccessToken)
+router.route("/change-password").post(verifyJWT, validateBodyFields(["oldPassword", "newPassword"]), changeCurrentPassword)
+router.route("/getCurrentUser").get(verifyJWT,getCurrentUser)
+router.route("/update-account").patch(verifyJWT, validateBodyFields(["email", "fullName"]), updateAccountDetails)
 router.route("/avatar").patch(
     verifyJWT,
     upload.single("avatar"),
     updateAvatar
-)//tested
+)
 router.route("/cover-image").patch(
     verifyJWT,
     upload.single("coverImage"),
     updateCoverImage
-)//tested
+)
 router.route("/channel/:username").get(verifyJWT, getUserChannelProfile)
 router.route("/watch-history").get(verifyJWT, getWatchHistory)
 
