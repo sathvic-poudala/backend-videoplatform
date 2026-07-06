@@ -127,7 +127,7 @@ const addVideoToPlaylist = asyncHandler(async(req, res) => {
         throw new ApiError(404,"playlist does not exist")
     }
 
-    if (playlist.createdBy.toString() !== req.user._id.toString()) {
+    if (!playlist.createdBy.equals(req.user._id)) {
         throw new ApiError(403, "You are not authorized to modify this playlist");
     }
 
@@ -168,7 +168,7 @@ const removeVideoFromPlaylist = asyncHandler(async(req, res) => {
         throw new ApiError(404,"playlist does not exist")
     }
 
-    if (playlist.createdBy.toString() !== req.user._id.toString()) {
+    if (!playlist.createdBy.equals(req.user._id)) {
         throw new ApiError(403, "You are not authorized to modify this playlist");
     }
 
@@ -228,7 +228,7 @@ const updatePlaylist = asyncHandler(async(req, res) => {
         throw new ApiError(404,"playlist does not exist")
     }
 
-    if (playlist.createdBy.toString() !== req.user._id.toString()) {
+    if (!playlist.createdBy.equals(req.user._id)) {
         throw new ApiError(403, "You are not authorized to update this playlist");
     }
 
