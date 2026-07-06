@@ -22,6 +22,20 @@ A Node.js backend for a video streaming service. It uploads media to Cloudinary,
 - TTL-based room expiry via MongoDB
 - Socket.IO handshake authentication using the same JWT signing secret as REST
 - Single process for REST and WebSocket
+- Like/subscription toggle with race-condition-safe upsert
+- **Like count derived from `Like` collection (single source of truth)**
+
+## Runtime Quality
+
+| Concern | Implementation |
+|---|---|
+| **Race conditions** | `like.controller.js` and `subscription.controller.js` catch duplicate-key errors (code 11000) and roll back to the opposite state |
+| **Denormalized counters** | Removed `likes` from `Video`, `Comment`, and `Tweet` schemas. Counts are derived from `Like.countDocuments()` or `$lookup` aggregation to avoid drift |
+| **Double DB fetch** | `isUserAuthorized` in `video.controller.js` now returns the video document so `togglePublishStatus`, `deleteVideo`, and `updateVideo` reuse it |
+| **Socket error handling** | All async Socket.IO handlers wrap their bodies in `try/catch` and emit `error` events |
+| **Global error handler** | `app.js` registers a final `(err, req, res, next)` middleware that formats all errors consistently |
+| **Security** | Removed `console.log` of JWTs from `refreshAccessToken` |
+| **Validation** | Centralized `validateObjectId` and `validateBodyFields` middleware wired into all route definitions |
 
 ## Architecture
 
@@ -89,6 +103,9 @@ Base URL: `/api/v1`
 | DELETE | `/videos/:videoId` | Yes | Delete video and Cloudinary assets |
 | PATCH | `/videos/toggle/publish/:videoId` | Yes | Toggle publish status |
 
+**Like count on videos**:  
+The `Like` collection is the single source of truth. Responses from `GET /videos/:videoId` and `GET /videos` include a computed `likesCount` field (derived via `$lookup` on the `likes` collection) instead of a denormalized `likes` field on the `Video` schema.
+
 ### Watch Together Rooms
 
 | Method | Endpoint | Auth | Description |
@@ -109,6 +126,18 @@ Base URL: `/api/v1`
 | POST | `/subscriptions/channel/:channelId` | Yes | Toggle subscription |
 | GET | `/dashboard/stats` | Yes | Channel stats |
 | GET | `/dashboard/videos` | Yes | Channel videos |
+
+**Like count on comments and tweets**:  
+`GET /comments/:videoId` and `GET /tweets/user/:userId` responses include `likesCount`, computed by joining the `likes` collection with `$lookup`. The `Comment` and `Tweet` schemas no longer store a denormalized `likes` field.
+
+## Validation Middleware
+
+Centralized validation middleware is used across all routes:
+
+- `validateObjectId(paramName)` — checks `mongoose.isValidObjectId()` on `req.params`
+- `validateBodyFields([...])` — checks that listed body fields exist and are non-empty after trim
+
+Used in: `video.routes.js`, `comment.routes.js`, `like.routes.js`, `subscription.router.js`, `tweet.routes.js`, `playlist.routes.js`, `user.routes.js`.
 
 ## Socket.IO
 
