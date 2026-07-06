@@ -13,9 +13,11 @@ export const validateObjectId = (paramName) => {
 
 export const validateBodyFields = (requiredFields) => {
     return (req, _res, next) => {
+        if (typeof req.body === 'undefined') {
+            return next(new ApiError(400, "Request body is empty or missing. Set Content-Type: application/json"));
+        }
         const missing = requiredFields.filter(field => {
             const val = req.body[field];
-            // treat missing, null, non-string, or blank values as missing
             return val === undefined || val === null || String(val).trim() === '';
         });
         if (missing.length > 0) {

@@ -53,7 +53,7 @@ export const initializeSocket = (server) => {
                 const room = await Room.findOne({ roomCode });
                 if (!room) return;
 
-                const isHost = room.hostId.toString() === socket.user._id;
+                const isHost = room.hostId.equals(socket.user._id);
                 if (!isHost && !room.everyoneCanControl) {
                     return socket.emit("error", { message: "Only host can control video" });
                 }
@@ -76,7 +76,7 @@ export const initializeSocket = (server) => {
                 const room = await Room.findOne({ roomCode });
                 if (!room) return;
 
-                const isHost = room.hostId.toString() === socket.user._id;
+                const isHost = room.hostId.equals(socket.user._id);
                 if (!isHost && !room.everyoneCanControl) {
                     return socket.emit("error", { message: "Only host can control video" });
                 }
@@ -99,7 +99,7 @@ export const initializeSocket = (server) => {
                 const room = await Room.findOne({ roomCode });
                 if (!room) return;
 
-                const isHost = room.hostId.toString() === socket.user._id;
+                const isHost = room.hostId.equals(socket.user._id);
                 if (!isHost && !room.everyoneCanControl) {
                     return socket.emit("error", { message: "Only host can control video" });
                 }

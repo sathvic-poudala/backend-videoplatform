@@ -6,7 +6,9 @@ import { validateObjectId } from "../middlewares/validate.middleware.js";
 const router = Router()
 router.use(verifyJWT);
 
-router.route("/channel/:channelId").get(validateObjectId("channelId"), getUserChannelSubscribers).post(validateObjectId("channelId"), toggleSubscription);
+router.route("/channel/:channelId")
+    .get(validateObjectId("channelId"), getUserChannelSubscribers)
+    .post(validateObjectId("channelId"), toggleSubscription);
 
 router.route("/user/:subscriberId").get(validateObjectId("subscriberId"), getSubscribedChannels)
 export default router
