@@ -93,7 +93,7 @@ const updateRoomSettings = asyncHandler(async(req,res) => {
         throw new ApiError(404, "Room not found");
     }
 
-    if (room.hostId.toString() !== userId) {
+    if (!room.hostId.equals(userId)) {
         throw new ApiError(403, "Only host can update room settings");
     }
 
