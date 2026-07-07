@@ -8,8 +8,20 @@ const toggleLike = async (userId, field, objectId) => {
     const filter = { likedBy: userId, [field]: objectId };
     const deleted = await Like.findOneAndDelete(filter);
     if (deleted) return "like has been removed";
-    await Like.create({ ...filter });
-    return "like has been added";
+
+    try {
+        await Like.create({ ...filter });
+        return "like has been added";
+    } catch (error) {
+        if (error.code === 11000) {
+            // Two concurrent requests both passed the delete step and tried to
+            // create. One succeeded; this one hit the unique index. Re-verify the
+            // real state so the message can never lie about what's in the DB.
+            const exists = await Like.exists(filter);
+            return exists ? "like has been added" : "like has been removed";
+        }
+        throw error;
+    }
 };
 
 const toggleVideoLike = asyncHandler(async(req,res) => {
