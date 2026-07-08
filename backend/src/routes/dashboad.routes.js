@@ -7,7 +7,10 @@ const router = Router()
 router.use(verifyJWT)
 
 //routes
+// GET /stats - Get channel stats (views, subscribers, total videos, etc.)
 router.route("/stats").get(getChannelStats)
+
+// GET /videos - Get all videos of the authenticated channel
 router.route("/videos").get(getChannelVideos)
 
 export default router

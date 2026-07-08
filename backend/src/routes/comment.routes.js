@@ -7,10 +7,14 @@ const router = Router()
 
 router.use(verifyJWT)
 
+// POST /:videoId - Add a comment to a video
+// GET /:videoId - Get all comments for a video
 router.route("/:videoId")
     .post(validateObjectId("videoId"), addComment)
     .get(validateObjectId("videoId"), getVideoComments);
 
+// PATCH /comment/:commentId - Update a comment
+// DELETE /comment/:commentId - Delete a comment
 router.route("/comment/:commentId")
     .patch(validateObjectId("commentId"), updateComment)
     .delete(validateObjectId("commentId"), deleteComment);
