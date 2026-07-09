@@ -5,15 +5,17 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Video } from "../models/video.model.js";
 
 const getChannelStats = asyncHandler(async(req,res) => {
-    //get total video views, total subscribers, total videos, total likes etc.
+    // Return total views, subscribers, videos, and likes for authenticated channel
     const userId = req.user._id
     
     const stats = await User.aggregate([
+        // Filter to authenticated user only
         {
             $match: {
                 _id: new mongoose.Types.ObjectId(userId)
             }
         },
+        // Join with subscriptions collection to count channel subscribers
         {
             $lookup: {
                 from: "subscriptions",
@@ -22,6 +24,7 @@ const getChannelStats = asyncHandler(async(req,res) => {
                 as: "subcribers"
             }
         },
+        // Join with likes collection to count likes on user's content
         {
             $lookup: {
                 from: "likes",
@@ -30,6 +33,7 @@ const getChannelStats = asyncHandler(async(req,res) => {
                 as: "likes"
             }
         },
+        // Join with videos collection to compute views and count videos
         {
             $lookup: {
                 from: "videos",
@@ -38,6 +42,7 @@ const getChannelStats = asyncHandler(async(req,res) => {
                 as: "videos",
             }
         },
+        // Shape output: size of joined arrays gives counts, $sum aggregates views
         {
             $addFields: {
                 totalSubscribers: {
@@ -54,6 +59,7 @@ const getChannelStats = asyncHandler(async(req,res) => {
                 }
             }
         },
+        // Keep only the computed stats in the response payload
         {
             $project: {
                 totalSubscribers: 1,
@@ -80,8 +86,9 @@ const getChannelStats = asyncHandler(async(req,res) => {
 })
 
 const getChannelVideos  = asyncHandler(async(req,res) => {
-    //Get all the videos uploaded by the channel
+    // Fetch all videos uploaded by the authenticated channel
     const videos = await Video.aggregate([
+        // Match documents where owner is the authenticated user
         {
             $match: {
                 owner: new mongoose.Types.ObjectId(req.user._id)
